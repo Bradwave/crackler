@@ -639,6 +639,14 @@ h3.grp:first-child {
   border-radius: 0;
   font-size: 13px;
 }
+.num .sel select {
+  width: auto;
+  min-width: 78px;
+  padding: 6px 28px 6px 9px;
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--ink);
+}
 .num input[type="text"] {
   width: 110px;
 }
@@ -1373,4 +1381,55 @@ details.fold[open] summary::after {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ---------- sessions ---------- */
+.keep {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+.keep input {
+  accent-color: var(--ink);
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 0;
+}
+.sess-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50dvh;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+.sess {
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sess input[type="text"] {
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 6px;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+}
+.sess input[type="text"]:hover,
+.sess input[type="text"]:focus {
+  border-color: var(--ink);
+  background: var(--surface);
+}
+.sess .meta {
+  font-size: 12px;
+  opacity: 0.75;
 }

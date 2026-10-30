@@ -69,8 +69,10 @@ function init() {
   for (const e of ["frame", "clip", "source", "play", "lang"]) on(e, sync);
   document.addEventListener("keydown", (e) => {
     if (!st.src || e.target.matches("input,select,textarea") || document.querySelector("dialog[open]")) return;
-    if (e.key === "ArrowRight") stepBy(1);
-    else if (e.key === "ArrowLeft") stepBy(-1);
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const jump = e.shiftKey ? 10 : 1;
+    if (e.key === "ArrowRight") stepBy(jump);
+    else if (e.key === "ArrowLeft") stepBy(-jump);
     else if (e.key === "Home") gotoFrame(st.clip.start);
     else if (e.key === "End") gotoFrame(st.clip.end);
     else if (e.code === "Space") setPlaying(!st.playing);

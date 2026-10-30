@@ -224,6 +224,21 @@ const DICT = {
     panelGrow: "Make the panel taller or shorter",
     restoreYes: "Restore",
     restoreNo: "Discard",
+    sessions: "Sessions",
+    sessionsTip: "Videos and analyses saved in this browser",
+    sessionsTitle: "Saved sessions",
+    sessionsNote: "A session keeps a video and your analysis in this browser only: nothing is uploaded. Clearing the site data of the browser deletes them.",
+    sessionsNone: "No saved sessions yet. Tick the option when you load a video.",
+    sessionKeep: "Keep this video ({size}) in this browser, to reopen it from Sessions",
+    sessionKept: "Video saved in Sessions",
+    sessionFull: "Not enough space to keep the video. The analysis is still autosaved.",
+    sessionGone: "The video of this session is missing",
+    sessionOpen: "Open",
+    sessionDelete: "Delete",
+    sessionDeleteQ: "Delete the session \"{name}\" and its video?",
+    sessionRename: "Session name",
+    sessionMeta: "{video} · {size} · {n} points · {when}",
+    sessionUsage: "Browser storage in use: {used} of about {quota}.",
     restored: "Work restored",
     autoUseSame: "Settings filled in from your autosaved work: keep them so the frames match.",
     computedTrack: "This track is computed from others: mark the point masses or vectors it uses.",
@@ -375,9 +390,10 @@ const DICT = {
         <li><b>Advanced</b>: automatic tracking, centre of mass, vectors, tape, protractor and circle fit (Tracks tab); perspective, lens and camera-motion corrections (Calibration tab); custom formula columns (Table tab). Perspective correction is valid only for motion in the plane of the rectangle you marked.</li>
         <li><b>Models and overlays</b>: add an <i>analytic particle</i> (x(<i>t</i>), y(<i>t</i>) formulas) or a <i>dynamic particle</i> (force formulas, Euler or RK4) in the Tracks tab to compare theory with the measurement; show velocity, acceleration and net-force arrows, trails and labels, and save the frame as a picture with the camera button.</li>
         <li><b>Project</b>: save your work as a small file and load it later together with the same video.</li>
+        <li><b>Sessions</b>: when you load a video you can keep it in this browser; the <i>Sessions</i> button lists the saved videos with their analysis, ready to reopen, rename or delete.</li>
       </ol>
       <h3>Keys</h3>
-      <p><kbd>←</kbd> <kbd>→</kbd> step · <kbd>Space</kbd> play · <kbd>Home</kbd> <kbd>End</kbd> first and last · <kbd>Del</kbd> delete the point · <kbd>Esc</kbd> cancel a point · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · mouse wheel zooms, right button drags.</p>
+      <p><kbd>←</kbd> <kbd>→</kbd> step (with <kbd>Shift</kbd>: 10 frames) · <kbd>Space</kbd> play · <kbd>Home</kbd> <kbd>End</kbd> first and last · <kbd>M</kbd> mark · <kbd>C</kbd> calibrate · <kbd>V</kbd> move the view · <kbd>N</kbd> new track · <kbd>1</kbd>–<kbd>5</kbd> tabs · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>F</kbd> fit the view · <kbd>G</kbd> save the frame as a picture · <kbd>Del</kbd> delete the point · <kbd>Esc</kbd> cancel a point · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>Ctrl</kbd>+<kbd>S</kbd> save the project · <kbd>Ctrl</kbd>+<kbd>O</kbd> open a video · <kbd>?</kbd> this help · mouse wheel zooms, right button drags.</p>
       <h3>Touch</h3>
       <p>One finger places a point, with a magnifier above the finger. Two fingers zoom and move the view.</p>
       <h3>Memory</h3>
@@ -607,6 +623,21 @@ const DICT = {
     panelGrow: "Rendi il pannello più alto o più basso",
     restoreYes: "Ripristina",
     restoreNo: "Scarta",
+    sessions: "Sessioni",
+    sessionsTip: "Video e analisi salvati in questo browser",
+    sessionsTitle: "Sessioni salvate",
+    sessionsNote: "Una sessione conserva un video e la tua analisi solo in questo browser: niente viene caricato. Cancellando i dati del sito dal browser vengono eliminate.",
+    sessionsNone: "Nessuna sessione salvata. Spunta l'opzione quando carichi un video.",
+    sessionKeep: "Conserva questo video ({size}) nel browser, per riaprirlo da Sessioni",
+    sessionKept: "Video salvato in Sessioni",
+    sessionFull: "Spazio insufficiente per conservare il video. L'analisi è comunque salvata in automatico.",
+    sessionGone: "Il video di questa sessione manca",
+    sessionOpen: "Apri",
+    sessionDelete: "Elimina",
+    sessionDeleteQ: "Eliminare la sessione \"{name}\" e il suo video?",
+    sessionRename: "Nome della sessione",
+    sessionMeta: "{video} · {size} · {n} punti · {when}",
+    sessionUsage: "Spazio del browser in uso: {used} su circa {quota}.",
     restored: "Lavoro ripristinato",
     autoUseSame: "Impostazioni prese dal tuo lavoro salvato automaticamente: tienile così i fotogrammi coincidono.",
     computedTrack: "Questa traccia è calcolata da altre: segna i punti materiali o i vettori che usa.",
@@ -753,9 +784,10 @@ const DICT = {
         <li><b>Calibrazione</b>: posiziona un'asta su qualcosa di lunghezza nota, scrivi la lunghezza, metti l'origine dove vuoi e ruota gli assi (per un piano inclinato usa <i>Lungo l'asta</i>).</li>
         <li><b>Segna</b> l'oggetto fotogramma dopo fotogramma. Il fotogramma successivo compare da solo.</li>
         <li><b>Tabella</b>: posizioni <i>x</i>, <i>y</i> nelle tue unità; copiale in un foglio di calcolo.</li>
+        <li><b>Sessioni</b>: quando carichi un video puoi conservarlo in questo browser; il pulsante <i>Sessioni</i> elenca i video salvati con la loro analisi, pronti da riaprire, rinominare o eliminare.</li>
       </ol>
       <h3>Tasti</h3>
-      <p><kbd>←</kbd> <kbd>→</kbd> passo · <kbd>Spazio</kbd> riproduci · <kbd>Home</kbd> <kbd>Fine</kbd> primo e ultimo · <kbd>Canc</kbd> elimina il punto · <kbd>Esc</kbd> annulla un punto · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla · la rotellina ingrandisce, il tasto destro trascina.</p>
+      <p><kbd>←</kbd> <kbd>→</kbd> passo (con <kbd>Maiusc</kbd>: 10 fotogrammi) · <kbd>Spazio</kbd> riproduci · <kbd>Home</kbd> <kbd>Fine</kbd> primo e ultimo · <kbd>M</kbd> segna · <kbd>C</kbd> calibra · <kbd>V</kbd> sposta la vista · <kbd>N</kbd> nuova traccia · <kbd>1</kbd>–<kbd>5</kbd> schede · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>F</kbd> adatta la vista · <kbd>G</kbd> salva il fotogramma come immagine · <kbd>Canc</kbd> elimina il punto · <kbd>Esc</kbd> annulla un punto · <kbd>Ctrl</kbd>+<kbd>Z</kbd> annulla · <kbd>Ctrl</kbd>+<kbd>S</kbd> salva il progetto · <kbd>Ctrl</kbd>+<kbd>O</kbd> apri un video · <kbd>?</kbd> questo aiuto · la rotellina ingrandisce, il tasto destro trascina.</p>
       <h3>Tocco</h3>
       <p>Un dito posiziona un punto, con una lente sopra il dito. Due dita ingrandiscono e spostano la vista.</p>
       <h3>Memoria</h3>

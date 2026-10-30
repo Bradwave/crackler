@@ -38,7 +38,7 @@ Vibecoded with Claude, with <3.
 13. **Arrows, trails and labels** (Tracks tab → *Arrows, trails and labels*): velocity, acceleration and net force (m·a) arrows for point masses, centres of mass and model particles, with a size slider for each; trails (all or the last N frames); labels with the values. **Save picture** (also the camera button under the video) exports the current frame with all overlays as a PNG of about 1280 px, with an optional time stamp; handles and boxes are not included.
 14. **Clip** tab → **Project**: save your points, calibration and settings as a small `.crackler.json` file (the video is not included). To continue later, load the project, then open the same video: the load dialog repeats the saved trim and size so frame numbers match.
 
-Keys: arrows step, Space plays, Home and End jump, Del deletes the point, Esc cancels a point, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z redoes. Mouse wheel zooms, right button drags; two fingers pinch and pan.
+Keys: arrows step (Shift: 10 frames), Space plays, Home and End jump, `M` mark, `C` calibrate, `V` move the view, `N` new track, `1`–`5` tabs, `+` `-` zoom, `F` fit the view, `G` save the frame as a picture, Del deletes the point, Esc cancels a point, Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z redoes, Ctrl/Cmd+S saves the project, Ctrl/Cmd+O opens a video, `?` opens the help. Shortcuts live in `js/ui/shortcuts.js` (plus the arrows in `transport.js`). Mouse wheel zooms, right button drags; two fingers pinch and pan.
 
 ### Good footage
 Fixed camera, object moving in a plane facing the camera, something of known length in that plane, good light (short shutter). Slow-motion clips work well.
@@ -149,13 +149,17 @@ Nothing else may use the `<video>` element for measurement; `video.currentTime` 
 
 Noise matters: a velocity is already a derivative of noisy positions, and the slope of a velocity is a derivative of that. With quarter-pixel clicks on the test clip, a 7-point tangent on v<sub>y</sub>(t) is 4% off while a 21-point one is within 0.1%. Use smoothing and a wider tangent window for accelerations, or fit a line to v<sub>y</sub>(t).
 
+### Sessions
+
+When you load a video, a checkbox keeps it in the browser (IndexedDB) together with the analysis. The **Sessions** button lists them: open (the video is re-extracted with the same settings and the analysis applied), rename, delete. The analysis is saved about 1.5 s after each change. The browser decides the quota (the dialog shows it); the page asks for persistent storage so that it is not evicted under pressure, and clearing site data removes the sessions. `js/sessions.js` is the pure store (tested with an in-memory backend), `js/idb.js` the IndexedDB backend, `js/ui/sessions.js` the dialog.
+
 ### Autosave
 
 While you work, the project is saved to the browser's `localStorage` about a second after each change (up to six videos, oldest dropped first; skipped for the built-in test clip). Entries are keyed by file name, size, duration and number of loaded frames. When you open the same video with the same load settings, an offer to restore appears; nothing is overwritten until you answer. The load dialog also fills in the trim and size you used last time for that file. Autosave is not a backup: save a project file to keep or share your work.
 
 ### Choosing frames
 
-"Keep one frame in N" works by position in the video, not by arrival order: a frame the browser skipped still counts as a slot, so the kept frames do not shift (`createStrider` in `timing.js`). `selftest.html` is a small page that loads a video exactly like the app and reports the real frame rate, repeats and gaps; use it to check a camera or a file.
+"Keep one frame in N" works by position in the video, not by arrival order: a frame the browser skipped still counts as a slot, so the kept frames do not shift (`createStrider` in `timing.js`).
 
 ### Phones
 

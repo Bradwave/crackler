@@ -3,11 +3,13 @@ import { $ } from "../dom.js";
 import { createFrames, probe, supported } from "../frames.js";
 import { createSyntheticFrames, recordSyntheticVideo } from "../frames-synthetic.js";
 import { t } from "../i18n.js";
+import { parseProject } from "../project.js";
 import { setSource, st } from "../state.js";
 import { estimate } from "../timing.js";
 import { downloadBlob, fmt, fmtBytes, store } from "../util.js";
 import { savedExtract } from "./autosave.js";
 import { toast } from "./controls.js";
+import * as sessions from "./sessions.js";
 
 const dlg = $("#loadDlg"),
   busy = $("#busy");
@@ -15,7 +17,8 @@ const WIDTHS = [320, 480, 640, 800, 960, 1280];
 const STEPS = [1, 2, 3, 4, 6, 8];
 let file = null,
   info = null,
-  abort = null;
+  abort = null,
+  adopt = null; // id of the stored session being reopened
 
 // A phone has far less room than a laptop; the budget is adjustable in the dialog.
 function defaultBudgetMB() {
@@ -75,6 +78,9 @@ function openDialog() {
     d: fmt(info.duration, 4),
     measured: info.fpsMeasured ? "" : t("fpsGuess"),
   }) + (x ? " " + t(fromProject ? "projUseSame" : "autoUseSame") : "");
+  $("#lKeep").checked = !adopt && store("crackler.keep") !== "0";
+  $("#lKeepWrap").style.display = adopt ? "none" : "";
+  $("#lKeepText").textContent = t("sessionKeep", { size: fmtBytes(file.size) });
   updateMem();
   dlg.showModal();
 }
@@ -90,7 +96,14 @@ function showBusy(title) {
 async function extract() {
   const o = readDlg();
   store("crackler.budgetMB", String(Math.round(o.budget / 1e6)));
+  const keep = $("#lKeep").checked && !$("#lKeepWrap").hidden;
+  if (!$("#lKeepWrap").hidden && !adopt) store("crackler.keep", keep ? "1" : "0");
   dlg.close();
+  await runExtract(o, keep);
+}
+async function runExtract(o, keep) {
+  await sessions.flush();
+  const reopened = adopt;
   abort = new AbortController();
   showBusy(t("extracting"));
   try {
@@ -110,18 +123,49 @@ async function extract() {
     src.info = { ...src.info, extract: { start: o.start, end: o.end, maxWidth: o.maxWidth, step: o.step } };
     const r = setSource(src);
     toast(r ? t(r === "applied" ? "projApplied" : "projMismatch") : t("loaded", { n: src.frameCount }), r ? 6000 : 2200);
+    await sessions.attach({ file, info, extract: src.info.extract, keep, adopt: reopened });
   } catch (e) {
     if (e.name !== "AbortError") toast(t(e.message === "unsupported" ? "errUnsupported" : "errDecode"), 5000);
   } finally {
     busy.hidden = true;
     abort = null;
+    adopt = null;
   }
+}
+
+// Reopens a stored session: the same extraction as before, then its analysis is applied.
+async function openStored(rec, blob) {
+  if (!supported()) return toast(t("errUnsupported"), 6000);
+  file = new File([blob], rec.videoName, { type: blob.type });
+  showBusy(t("reading"));
+  $("#busyCancel").hidden = true;
+  try {
+    info = await probe(file);
+    if (!(info.duration > 0) || !info.width) throw new Error("decode");
+  } catch {
+    busy.hidden = true;
+    return toast(t("errDecode"), 5000);
+  }
+  busy.hidden = true;
+  const parsed = parseProject(rec.project);
+  st.pending = parsed.error ? null : parsed.project;
+  adopt = rec.id;
+  const x = rec.extract;
+  if (!x) return openDialog();
+  const o = { start: x.start, end: Math.min(x.end, info.duration), maxWidth: Math.min(x.maxWidth, info.width), step: x.step, budget: defaultBudgetMB() * 1e6 };
+  const e = estimate({ vw: info.width, vh: info.height, fps: info.fps, ...o });
+  if (e.over) return openDialog();
+  await runExtract(o, false);
 }
 
 // ---------- entry points ----------
 async function onFile(f) {
   if (!f) return;
   if (!supported()) return toast(t("errUnsupported"), 6000);
+  if (adopt) {
+    adopt = null;
+    st.pending = null;
+  }
   file = f;
   showBusy(t("reading"));
   $("#busyCancel").hidden = true;
@@ -170,7 +214,13 @@ function init() {
   };
   for (const id of ["#lStart", "#lEnd", "#lWidth", "#lStep", "#lBudget"]) $(id).addEventListener("input", updateMem);
   $("#lGo").onclick = extract;
-  $("#lCancel").onclick = () => dlg.close();
+  $("#lCancel").onclick = () => {
+    dlg.close();
+    if (adopt) {
+      adopt = null;
+      st.pending = null;
+    }
+  };
   $("#busyCancel").onclick = () => abort && abort.abort();
   // drag and drop a file onto the stage
   const wrap = $("#wrap");
@@ -182,4 +232,4 @@ function init() {
   $("#demoVideoBtn").onclick = downloadDemoVideo;
 }
 
-export { init };
+export { init, openStored };

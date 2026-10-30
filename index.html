@@ -49,6 +49,9 @@
           <button class="btn primary" id="openBtn" data-i18n-title="openVideoTip">
             <span class="ms">video_file</span><span class="lbl" data-i18n="openVideo"></span>
           </button>
+          <button class="btn" id="sessBtn" hidden data-i18n-title="sessionsTip">
+            <span class="ms">folder_special</span><span class="lbl" data-i18n="sessions"></span>
+          </button>
           <span class="grow"></span>
           <div class="seg tools" id="toolSeg" data-i18n-aria="tools">
             <button data-v="mark" class="on" data-i18n-title="toolMark">
@@ -91,6 +94,9 @@
               </button>
               <button class="btn" data-demo>
                 <span class="ms">science</span><span data-i18n="demo"></span>
+              </button>
+              <button class="btn" data-sessions hidden>
+                <span class="ms">folder_special</span><span data-i18n="sessions"></span>
               </button>
             </div>
             <p class="note" data-i18n="privacy"></p>
@@ -492,10 +498,21 @@
         <label class="num"><span data-i18n="budget"></span> <input type="number" id="lBudget" step="50" min="50" inputmode="numeric" /> MB</label>
       </div>
       <div class="mem" id="lMem"></div>
+      <label class="keep" id="lKeepWrap" hidden><input type="checkbox" id="lKeep" /> <span id="lKeepText"></span></label>
       <p class="note" data-i18n="extractNote"></p>
       <div class="row" style="margin-top: 14px">
         <button class="btn primary" id="lGo"><span class="ms">play_arrow</span><span data-i18n="extract"></span></button>
         <button class="btn" id="lCancel"><span data-i18n="cancel"></span></button>
+      </div>
+    </dialog>
+
+    <dialog id="sessDlg">
+      <h2 data-i18n="sessionsTitle"></h2>
+      <p class="note" data-i18n="sessionsNote"></p>
+      <div class="sess-list" id="sessList"></div>
+      <p class="note" id="sessUsage"></p>
+      <div class="row" style="margin-top: 14px">
+        <button class="btn primary" id="sessClose" data-i18n="close"></button>
       </div>
     </dialog>
 
