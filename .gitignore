@@ -3,3 +3,6 @@ Thumbs.db
 .vscode/
 node_modules/
 .claude/
+PLAN.md
+STYLE.md
+selftest.html
