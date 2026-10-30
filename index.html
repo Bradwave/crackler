@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Crackler</title>
+    <meta
+      name="description"
+      content="Video analysis for physics teaching: track motion frame by frame, calibrate, and get positions, velocities and plots. Runs in the browser; videos never leave the device."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0&display=block"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <h1 class="word" aria-label="Crackler">
+          <span class="k">c</span><span class="a">r</span><span>a</span><span class="b">c</span
+          ><span class="k crack">k</span><span>l</span><span class="a">e</span><span class="b">r</span>
+        </h1>
+        <p class="tag-line" data-i18n="tagline"></p>
+      </div>
+      <div class="top-actions">
+        <div class="seg small" data-lang-seg aria-label="Language">
+          <button data-v="it">IT</button><button data-v="en">EN</button>
+        </div>
+        <button class="icon-btn" data-theme-btn data-i18n-aria="theme" data-i18n-title="theme">
+          <span class="ms">contrast</span>
+        </button>
+        <button class="icon-btn" data-help-btn data-i18n-aria="help">
+          <span class="ms">help</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="stage">
+        <div class="toolbar card">
+          <button class="btn primary" id="openBtn" data-i18n-title="openVideoTip">
+            <span class="ms">video_file</span><span class="lbl" data-i18n="openVideo"></span>
+          </button>
+          <span class="grow"></span>
+          <div class="seg tools" id="toolSeg" data-i18n-aria="tools">
+            <button data-v="mark" class="on" data-i18n-title="toolMark">
+              <span class="ms">ads_click</span><span class="t" data-i18n="toolMarkShort"></span>
+            </button>
+            <button data-v="calib" data-i18n-title="toolCalib">
+              <span class="ms">straighten</span><span class="t" data-i18n="toolCalibShort"></span>
+            </button>
+            <button data-v="view" data-i18n-title="toolView">
+              <span class="ms">pan_tool</span><span class="t" data-i18n="toolViewShort"></span>
+            </button>
+          </div>
+          <button class="btn ic" id="undoBtn" data-i18n-aria="undo" data-i18n-title="undo">
+            <span class="ms">undo</span>
+          </button>
+          <button class="btn ic" id="redoBtn" data-i18n-aria="redo" data-i18n-title="redo">
+            <span class="ms">redo</span>
+          </button>
+          <button class="btn ic zoom-x" id="zoomOutBtn" data-i18n-aria="zoomOut" data-i18n-title="zoomOut">
+            <span class="ms">zoom_out</span>
+          </button>
+          <button class="btn ic zoom-x" id="zoomInBtn" data-i18n-aria="zoomIn" data-i18n-title="zoomIn">
+            <span class="ms">zoom_in</span>
+          </button>
+          <button class="btn ic" id="zoomFitBtn" data-i18n-aria="zoomFit" data-i18n-title="zoomFit">
+            <span class="ms">fit_screen</span>
+          </button>
+        </div>
+
+        <div class="canvas-wrap card" id="wrap">
+          <canvas id="cv" data-i18n-aria="canvasLabel"></canvas>
+          <div class="readout" id="readout" hidden></div>
+          <div class="hint" id="hint"></div>
+          <div class="toast" id="toast" role="status"></div>
+          <div class="empty" id="empty">
+            <p data-i18n-html="emptyText"></p>
+            <div class="row">
+              <button class="btn primary" data-open>
+                <span class="ms">video_file</span><span data-i18n="openVideo"></span>
+              </button>
+              <button class="btn" data-demo>
+                <span class="ms">science</span><span data-i18n="demo"></span>
+              </button>
+            </div>
+            <p class="note" data-i18n="privacy"></p>
+          </div>
+          <div class="restore card collect" id="collectBar" hidden>
+            <span id="collectText"></span>
+            <div class="row">
+              <button class="btn primary" id="collectDone" hidden><span class="ms">check</span><span data-i18n="collectDone"></span></button>
+              <button class="btn" id="collectCancel"><span class="ms">close</span><span data-i18n="cancel"></span></button>
+            </div>
+          </div>
+          <div class="restore card" id="restoreBar" hidden role="alertdialog" aria-labelledby="restoreText">
+            <span id="restoreText"></span>
+            <div class="row">
+              <button class="btn primary" id="restoreYes" data-i18n="restoreYes"></button>
+              <button class="btn" id="restoreNo" data-i18n="restoreNo"></button>
+            </div>
+          </div>
+          <div class="busy" id="busy" hidden>
+            <div class="busy-card card">
+              <b id="busyTitle"></b>
+              <div class="bar"><i id="busyBar"></i></div>
+              <span class="note" id="busyNote"></span>
+              <button class="btn" id="busyCancel"><span class="ms">close</span><span data-i18n="cancel"></span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="transport card" id="transport">
+          <input type="range" id="frameRange" min="0" max="0" step="1" value="0" data-i18n-aria="frameSlider" />
+          <div class="trow">
+            <button class="btn ic xs-hide" id="firstBtn" data-i18n-aria="first" data-i18n-title="first">
+              <span class="ms">first_page</span>
+            </button>
+            <button class="btn ic" id="prevBtn" data-i18n-aria="prev" data-i18n-title="prev">
+              <span class="ms">chevron_left</span>
+            </button>
+            <button class="btn primary ic" id="playBtn" data-i18n-aria="play" data-i18n-title="play">
+              <span class="ms" id="playIcon">play_arrow</span>
+            </button>
+            <button class="btn ic" id="nextBtn" data-i18n-aria="next" data-i18n-title="next">
+              <span class="ms">chevron_right</span>
+            </button>
+            <button class="btn ic xs-hide" id="lastBtn" data-i18n-aria="last" data-i18n-title="last">
+              <span class="ms">last_page</span>
+            </button>
+            <div class="seg small" id="speedSeg" data-i18n-aria="speed">
+              <button data-v="0.1">0.1×</button><button data-v="0.25">¼×</button
+              ><button data-v="0.5">½×</button><button data-v="1" class="on">1×</button>
+            </div>
+            <button class="btn ic xs-hide" id="snapBtn" data-i18n-aria="snapshot" data-i18n-title="snapshot">
+              <span class="ms">photo_camera</span>
+            </button>
+            <span class="grow"></span>
+            <span class="flbl" id="frameLbl"></span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="tabs" role="tablist">
+          <button class="tab on" data-tab="clip" role="tab" data-i18n-aria="tabClip" data-i18n-title="tabClip">
+            <span class="ms">movie</span><span class="t" data-i18n="tabClip"></span>
+          </button>
+          <button class="tab" data-tab="calib" role="tab" data-i18n-aria="tabCalib" data-i18n-title="tabCalib">
+            <span class="ms">straighten</span><span class="t" data-i18n="tabCalib"></span>
+          </button>
+          <button class="tab" data-tab="tracks" role="tab" data-i18n-aria="tabTracks" data-i18n-title="tabTracks">
+            <span class="ms">ads_click</span><span class="t" data-i18n="tabTracks"></span>
+          </button>
+          <button class="tab" data-tab="table" role="tab" data-i18n-aria="tabTable" data-i18n-title="tabTable">
+            <span class="ms">table_chart</span><span class="t" data-i18n="tabTable"></span>
+          </button>
+          <button class="tab" data-tab="plot" role="tab" data-i18n-aria="tabPlot" data-i18n-title="tabPlot">
+            <span class="ms">show_chart</span><span class="t" data-i18n="tabPlot"></span>
+          </button>
+          <button class="icon-btn mob-help panel-grow" id="panelGrow" aria-pressed="false" data-i18n-aria="panelGrow" data-i18n-title="panelGrow">
+            <span class="ms" id="panelGrowIcon">unfold_more</span>
+          </button>
+          <button class="icon-btn mob-help" data-help-btn data-i18n-aria="help">
+            <span class="ms">settings</span>
+          </button>
+        </div>
+
+        <div class="tabpane card" id="pane-clip">
+          <div class="note" id="clipInfo"></div>
+          <div id="warnBox"></div>
+          <h3 class="grp" data-i18n="grpFrames"></h3>
+          <div class="row">
+            <label class="num"><span data-i18n="start"></span> <input type="number" id="cStart" step="1" inputmode="numeric" /></label>
+            <label class="num"><span data-i18n="end"></span> <input type="number" id="cEnd" step="1" inputmode="numeric" /></label>
+            <label class="num"><span data-i18n="step"></span> <input type="number" id="cStep" step="1" min="1" inputmode="numeric" /></label>
+          </div>
+          <h3 class="grp" data-i18n="grpTime"></h3>
+          <button class="tg" id="fpsTg" aria-pressed="false">
+            <span class="txt"><span data-i18n="fixedFps"></span><small data-i18n="fixedFpsHint"></small></span>
+            <span class="box"></span>
+          </button>
+          <div class="row">
+            <label class="num"><span data-i18n="fps"></span> <input type="number" id="cFps" step="any" min="0.1" inputmode="decimal" /> Hz</label>
+            <label class="num"><span data-i18n="tOffset"></span> <input type="number" id="cOff" step="any" inputmode="decimal" /> s</label>
+          </div>
+          <div class="row" style="margin-top: 8px">
+            <label class="num"><span data-i18n="zeroAt"></span> <input type="number" id="cZero" step="1" inputmode="numeric" /></label>
+            <button class="btn" id="zeroHere"><span class="ms">my_location</span><span data-i18n="zeroHere"></span></button>
+          </div>
+          <p class="note" id="clipTimes"></p>
+          <h3 class="grp" data-i18n="grpProject"></h3>
+          <div class="row">
+            <button class="btn" id="saveProjBtn"><span class="ms">save</span><span data-i18n="saveProject"></span></button>
+            <button class="btn" id="loadProjBtn"><span class="ms">folder_open</span><span data-i18n="loadProject"></span></button>
+          </div>
+          <p class="note" id="projNote"></p>
+          <h3 class="grp" data-i18n="grpVideo"></h3>
+          <div class="row">
+            <button class="btn" id="otherBtn" data-open><span class="ms">video_file</span><span data-i18n="openOther"></span></button>
+            <button class="btn" data-demo><span class="ms">science</span><span data-i18n="demo"></span></button>
+            <button class="btn" id="demoVideoBtn" data-i18n-title="demoVideoTip"><span class="ms">download</span><span data-i18n="downloadDemoVideo"></span></button>
+          </div>
+        </div>
+
+        <div class="tabpane card" id="pane-calib" hidden>
+          <h3 class="grp" data-i18n="grpScale"></h3>
+          <p class="note" data-i18n="stickNote"></p>
+          <div class="row">
+            <button class="btn primary" id="stickBtn"><span class="ms">straighten</span><span data-i18n="placeStick"></span></button>
+            <label class="num"><span data-i18n="length"></span> <input type="number" id="stickLen" step="any" min="0" inputmode="decimal" /></label>
+            <div class="sel"><select id="unitSel" data-i18n-aria="unit"></select></div>
+          </div>
+          <p class="note" id="scaleNote"></p>
+          <h3 class="grp" data-i18n="grpAxes"></h3>
+          <div class="row">
+            <button class="btn" id="originBtn"><span class="ms">my_location</span><span data-i18n="placeOrigin"></span></button>
+            <label class="num">x <input type="number" id="oX" step="any" inputmode="decimal" /></label>
+            <label class="num">y <input type="number" id="oY" step="any" inputmode="decimal" /> px</label>
+          </div>
+          <div class="ctl">
+            <label for="angR"><span data-i18n="axisAngle"></span> <b id="angL"></b></label>
+            <input type="range" id="angR" min="-180" max="180" step="0.5" />
+          </div>
+          <div class="row">
+            <button class="btn" id="alignBtn"><span class="ms">rotate_right</span><span data-i18n="alignStick"></span></button>
+            <button class="btn" id="angZero"><span class="ms">restart_alt</span><span data-i18n="angleZero"></span></button>
+          </div>
+          <button class="tg" id="invYTg" aria-pressed="false" style="margin-top: 10px">
+            <span class="txt"><span data-i18n="invertY"></span><small data-i18n="invertYHint"></small></span>
+            <span class="box"></span>
+          </button>
+          <button class="tg" id="clearCalTg" style="margin-top: 4px">
+            <span class="txt"><span data-i18n="clearCal"></span></span>
+          </button>
+
+          <details class="fold" id="perspBox">
+            <summary><span class="ms">crop_free</span><span data-i18n="perspTitle"></span></summary>
+            <p class="note warn" data-i18n="perspWarn"></p>
+            <p class="note" data-i18n="perspHelp"></p>
+            <div class="row">
+              <button class="btn primary" id="perspBtn"><span class="ms">crop_free</span><span data-i18n="perspPlace"></span></button>
+              <label class="num"><span data-i18n="perspW"></span> <input type="number" id="perspW" step="any" min="0" inputmode="decimal" /></label>
+              <label class="num"><span data-i18n="perspH"></span> <input type="number" id="perspH" step="any" min="0" inputmode="decimal" /></label>
+              <span class="note" id="perspUnit"></span>
+            </div>
+            <p class="note" id="perspNote"></p>
+            <div class="row"><button class="btn" id="perspClear"><span class="ms">backspace</span><span data-i18n="perspClear"></span></button></div>
+          </details>
+
+          <details class="fold" id="lensBox">
+            <summary><span class="ms">lens_blur</span><span data-i18n="lensTitle"></span></summary>
+            <p class="note" data-i18n-html="lensHelp"></p>
+            <div class="row">
+              <label class="num">k<sub>1</sub> <input type="number" id="lensK1" step="0.001" inputmode="decimal" /></label>
+              <label class="num">k<sub>2</sub> <input type="number" id="lensK2" step="0.001" inputmode="decimal" /></label>
+            </div>
+            <div class="ctl"><label for="lensR"><span>k<sub>1</sub></span> <b id="lensL"></b></label><input type="range" id="lensR" min="-0.6" max="0.6" step="0.001" /></div>
+            <div class="row">
+              <button class="btn" id="lensAdd"><span class="ms">show_chart</span><span data-i18n="lensAdd"></span></button>
+              <button class="btn" id="lensFit"><span class="ms">auto_fix_high</span><span data-i18n="lensFit"></span></button>
+              <button class="btn" id="lensReset"><span class="ms">restart_alt</span><span data-i18n="lensReset"></span></button>
+            </div>
+            <p class="note" id="lensNote"></p>
+          </details>
+
+          <details class="fold" id="camBox">
+            <summary><span class="ms">videocam</span><span data-i18n="camTitle"></span></summary>
+            <p class="note" data-i18n="camHelp"></p>
+            <div class="row">
+              <label class="num"><span data-i18n="camRef"></span> <span class="sel"><select id="camA"></select></span></label>
+              <label class="num"><span data-i18n="camRef2"></span> <span class="sel"><select id="camB"></select></span></label>
+            </div>
+            <div class="row" style="margin-top: 8px">
+              <label class="num"><span data-i18n="camBase"></span> <input type="number" id="camBase" step="1" min="0" inputmode="numeric" /></label>
+              <button class="btn" id="camHere"><span class="ms">my_location</span><span data-i18n="zeroHere"></span></button>
+            </div>
+            <p class="note" id="camNote"></p>
+          </details>
+        </div>
+
+        <div class="tabpane card" id="pane-tracks" hidden>
+          <h3 class="grp" data-i18n="grpTracks"></h3>
+          <div id="trList" class="trlist"></div>
+          <div class="row" style="margin-top: 8px">
+            <span class="sel"><select id="addKind" data-i18n-aria="kindLabel"></select></span>
+            <button class="btn" id="addTrackBtn"><span class="ms">add</span><span data-i18n="addTrack"></span></button>
+            <button class="btn" id="delTrackBtn"><span class="ms">delete</span><span data-i18n="deleteTrack"></span></button>
+          </div>
+          <h3 class="grp" data-i18n="grpSelected"></h3>
+          <div class="row">
+            <label class="num"><span data-i18n="name"></span> <input type="text" id="trName" maxlength="12" /></label>
+            <label class="num" id="trMassWrap"><span data-i18n="mass"></span> <input type="number" id="trMass" step="any" min="0" inputmode="decimal" /> kg</label>
+          </div>
+          <div class="ctl"><label><span data-i18n="color"></span></label><div class="swrow" id="trColors"></div></div>
+          <div id="kindBox"></div>
+          <div class="ctl" id="trMarkerCtl"><label><span data-i18n="marker"></span></label><div class="seg small" id="trMarkers"></div></div>
+          <h3 class="grp" data-i18n="grpMarking"></h3>
+          <button class="tg" id="advTg" aria-pressed="true">
+            <span class="txt"><span data-i18n="autoAdvance"></span><small data-i18n="autoAdvanceHint"></small></span>
+            <span class="box"></span>
+          </button>
+          <button class="tg" id="trailTg" aria-pressed="true">
+            <span class="txt"><span data-i18n="showMarks"></span><small data-i18n="showMarksHint"></small></span>
+            <span class="box"></span>
+          </button>
+          <p class="note" id="trCount"></p>
+          <div class="row">
+            <button class="btn" id="delPtBtn"><span class="ms">backspace</span><span data-i18n="deletePoint"></span></button>
+            <button class="btn" id="clearPtsBtn"><span class="ms">delete_sweep</span><span data-i18n="clearPoints"></span></button>
+          </div>
+          <details class="fold" id="autoBox">
+            <summary><span class="ms">track_changes</span><span data-i18n="autoTitle"></span></summary>
+            <p class="note" data-i18n="autoHelp"></p>
+            <div class="ctl"><label for="autoHalf"><span data-i18n="autoSize"></span> <b id="autoHalfL"></b></label><input type="range" id="autoHalf" min="3" max="30" step="1" /></div>
+            <div class="ctl"><label for="autoRadius"><span data-i18n="autoRadius"></span> <b id="autoRadiusL"></b></label><input type="range" id="autoRadius" min="6" max="150" step="1" /></div>
+            <div class="ctl"><label for="autoThr"><span data-i18n="autoThr"></span> <b id="autoThrL"></b></label><input type="range" id="autoThr" min="0.4" max="0.99" step="0.01" /></div>
+            <button class="tg" id="autoAdapt" aria-pressed="false">
+              <span class="txt"><span data-i18n="autoAdapt"></span><small data-i18n="autoAdaptHint"></small></span><span class="box"></span>
+            </button>
+            <div class="seg small" id="autoDir" data-i18n-aria="autoDirLbl" style="margin: 8px 0">
+              <button data-v="1" class="on" data-i18n="autoFwd"></button><button data-v="-1" data-i18n="autoBack"></button>
+            </div>
+            <div class="row">
+              <button class="btn primary" id="autoRun"><span class="ms">play_arrow</span><span data-i18n="autoRun"></span></button>
+              <button class="btn" id="autoStop" hidden><span class="ms">stop</span><span data-i18n="autoStop"></span></button>
+            </div>
+            <p class="note" id="autoMsg"></p>
+          </details>
+
+          <details class="fold" id="measBox">
+            <summary><span class="ms">architecture</span><span data-i18n="measTitle"></span></summary>
+            <p class="note" data-i18n="measHelp"></p>
+            <div class="row">
+              <button class="btn" id="addTape"><span class="ms">straighten</span><span data-i18n="measTape"></span></button>
+              <button class="btn" id="addProt"><span class="ms">square_foot</span><span data-i18n="measProt"></span></button>
+              <button class="btn" id="addCircle"><span class="ms">circle</span><span data-i18n="measCircle"></span></button>
+            </div>
+            <div id="measList" class="measlist"></div>
+          </details>
+
+          <details class="fold" id="ovBox">
+            <summary><span class="ms">layers</span><span data-i18n="ovTitle"></span></summary>
+            <p class="note" data-i18n="ovHelp"></p>
+            <button class="tg" id="ovV" aria-pressed="false"><span class="txt"><span data-i18n="ovVel"></span><small data-i18n="ovVelHint"></small></span><span class="box"></span></button>
+            <div class="ctl"><label for="ovSv"><span data-i18n="ovSize"></span> <b id="ovSvL"></b></label><input type="range" id="ovSv" min="0.1" max="4" step="0.05" /></div>
+            <button class="tg" id="ovA" aria-pressed="false"><span class="txt"><span data-i18n="ovAcc"></span></span><span class="box"></span></button>
+            <div class="ctl"><label for="ovSa"><span data-i18n="ovSize"></span> <b id="ovSaL"></b></label><input type="range" id="ovSa" min="0.1" max="4" step="0.05" /></div>
+            <button class="tg" id="ovF" aria-pressed="false"><span class="txt"><span data-i18n="ovForce"></span><small data-i18n="ovForceHint"></small></span><span class="box"></span></button>
+            <div class="ctl"><label for="ovSf"><span data-i18n="ovSize"></span> <b id="ovSfL"></b></label><input type="range" id="ovSf" min="0.1" max="4" step="0.05" /></div>
+            <button class="tg" id="ovTrail" aria-pressed="false"><span class="txt"><span data-i18n="ovTrail"></span></span><span class="box"></span></button>
+            <div class="ctl"><label for="ovTrailLen"><span data-i18n="ovTrailLen"></span> <b id="ovTrailLenL"></b></label><input type="range" id="ovTrailLen" min="0" max="200" step="1" /></div>
+            <button class="tg" id="ovLabels" aria-pressed="true"><span class="txt"><span data-i18n="ovLabels"></span><small data-i18n="ovLabelsHint"></small></span><span class="box"></span></button>
+            <button class="tg" id="ovStamp" aria-pressed="false"><span class="txt"><span data-i18n="ovStamp"></span><small data-i18n="ovStampHint"></small></span><span class="box"></span></button>
+            <div class="row" style="margin-top: 8px"><button class="btn primary" id="ovExport"><span class="ms">photo_camera</span><span data-i18n="ovExport"></span></button></div>
+          </details>
+
+          <h3 class="grp" data-i18n="grpDerive"></h3>
+          <div class="ctl">
+            <label for="smoothR"><span data-i18n="smoothing"></span> <b id="smoothL"></b></label>
+            <input type="range" id="smoothR" min="1" max="8" step="1" />
+          </div>
+          <p class="note" data-i18n="smoothingHint"></p>
+          <p class="note" data-i18n-html="marksHelp"></p>
+        </div>
+
+        <div class="tabpane card" id="pane-table" hidden>
+          <div class="gchips" id="colChips"></div>
+          <div class="tblwrap" id="tblWrap"><table class="ptable" id="dataTable"></table></div>
+          <div class="csvrow">
+            <button class="btn" id="copyBtn"><span class="ms">content_copy</span><span data-i18n="copyTable"></span></button>
+            <button class="btn" id="csvBtn"><span class="ms">download</span><span data-i18n="downloadCsv"></span></button>
+          </div>
+          <p class="note" id="tblNote"></p>
+          <textarea id="csvOut" hidden readonly aria-label="CSV"></textarea>
+
+          <details class="fold" id="customBox">
+            <summary><span class="ms">function</span><span data-i18n="customTitle"></span></summary>
+            <p class="note" data-i18n-html="customHelp"></p>
+            <h3 class="grp" data-i18n="paramsTitle"></h3>
+            <div id="paramList"></div>
+            <div class="row"><button class="btn" id="addParam"><span class="ms">add</span><span data-i18n="addParam"></span></button></div>
+            <h3 class="grp" data-i18n="columnsTitle"></h3>
+            <div id="defList"></div>
+            <div class="row"><button class="btn" id="addDef"><span class="ms">add</span><span data-i18n="addColumn"></span></button></div>
+          </details>
+        </div>
+
+        <div class="tabpane card" id="pane-plot" hidden>
+          <canvas id="plotCv" class="plotcv" data-i18n-aria="plotLabel"></canvas>
+          <div class="gchips" id="plotLegend"></div>
+          <div class="seg small anseg" id="anSeg" data-i18n-aria="anTools">
+            <button data-v="axes" class="on" data-i18n="anAxes"></button>
+            <button data-v="slope" data-i18n="anSlope"></button>
+            <button data-v="area" data-i18n="anArea"></button>
+            <button data-v="fit" data-i18n="anFit"></button>
+          </div>
+          <div class="row" id="anSeriesWrap" hidden style="margin-top: 8px">
+            <label class="num"><span data-i18n="anSeries"></span> <span class="sel"><select id="anSeries"></select></span></label>
+          </div>
+
+          <div id="an-axes">
+            <h3 class="grp" data-i18n="plotX"></h3>
+            <div class="sel"><select id="plotX" data-i18n-aria="plotX"></select></div>
+            <h3 class="grp" data-i18n="plotY"></h3>
+            <div class="gchips" id="plotYChips"></div>
+            <button class="tg" id="plotConnect" aria-pressed="false">
+              <span class="txt"><span data-i18n="plotConnect"></span></span><span class="box"></span>
+            </button>
+            <button class="tg" id="plotAuto" aria-pressed="true">
+              <span class="txt"><span data-i18n="plotAuto"></span><small data-i18n="plotAutoHint"></small></span><span class="box"></span>
+            </button>
+            <div class="row" id="limRow" hidden>
+              <label class="num">x<sub>min</sub> <input type="number" id="limX0" step="any" inputmode="decimal" /></label>
+              <label class="num">x<sub>max</sub> <input type="number" id="limX1" step="any" inputmode="decimal" /></label>
+              <label class="num">y<sub>min</sub> <input type="number" id="limY0" step="any" inputmode="decimal" /></label>
+              <label class="num">y<sub>max</sub> <input type="number" id="limY1" step="any" inputmode="decimal" /></label>
+            </div>
+            <p class="note" data-i18n="plotHelp"></p>
+          </div>
+
+          <div id="an-slope" hidden>
+            <div class="seg small" id="slopeKind" data-i18n-aria="anSlope" style="margin-top: 10px">
+              <button data-v="tangent" class="on" data-i18n="slopeTangent"></button>
+              <button data-v="two" data-i18n="slopeTwo"></button>
+            </div>
+            <div class="ctl" id="slopeKCtl">
+              <label for="slopeK"><span data-i18n="slopeNeighbours"></span> <b id="slopeKL"></b></label>
+              <input type="range" id="slopeK" min="1" max="6" step="1" />
+            </div>
+            <p class="note" id="slopeHint"></p>
+            <div class="res" id="slopeRes"></div>
+            <div class="row"><button class="btn" id="slopeClear"><span class="ms">backspace</span><span data-i18n="clear"></span></button></div>
+          </div>
+
+          <div id="an-area" hidden>
+            <p class="note" data-i18n="areaHint"></p>
+            <div class="rangebox"><span class="range-info"></span> <button class="btn range-clear"><span class="ms">backspace</span><span data-i18n="clearRange"></span></button></div>
+            <div class="res" id="areaRes"></div>
+          </div>
+
+          <div id="an-fit" hidden>
+            <p class="note" data-i18n="fitHint"></p>
+            <div class="rangebox"><span class="range-info"></span> <button class="btn range-clear"><span class="ms">backspace</span><span data-i18n="clearRange"></span></button></div>
+            <div class="row" style="margin-top: 8px">
+              <label class="num"><span data-i18n="fitModel"></span> <span class="sel"><select id="fitType" data-i18n-aria="fitModel"></select></span></label>
+              <label class="num" id="fitDegWrap"><span data-i18n="fitDegree"></span> <span class="sel"><select id="fitDeg"></select></span></label>
+            </div>
+            <div id="fitExprWrap" hidden>
+              <label class="num wide"><span>y(x) =</span> <input type="text" id="fitExpr" maxlength="200" spellcheck="false" autocapitalize="off" autocomplete="off" /></label>
+              <p class="note" id="fitExprMsg"></p>
+            </div>
+            <div class="seg small" id="fitMode" data-i18n-aria="fitModeLbl" style="margin-top: 8px">
+              <button data-v="auto" class="on" data-i18n="fitAuto"></button>
+              <button data-v="manual" data-i18n="fitManual"></button>
+            </div>
+            <div id="fitSliders"></div>
+            <div class="row" id="fitFromWrap" hidden><button class="btn" id="fitFrom"><span class="ms">auto_fix_high</span><span data-i18n="fitFrom"></span></button></div>
+            <div class="res" id="fitRes"></div>
+            <div class="row"><button class="btn" id="fitCopy"><span class="ms">content_copy</span><span data-i18n="fitCopy"></span></button></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <input type="file" id="fileIn" accept="video/*,.mp4,.mov,.m4v,.webm" hidden />
+    <input type="file" id="projIn" accept=".json,application/json" hidden />
+
+    <dialog id="loadDlg">
+      <h2 data-i18n="loadTitle"></h2>
+      <p class="note" id="loadInfo"></p>
+      <div class="row">
+        <label class="num"><span data-i18n="from"></span> <input type="number" id="lStart" step="0.01" min="0" inputmode="decimal" /> s</label>
+        <label class="num"><span data-i18n="to"></span> <input type="number" id="lEnd" step="0.01" min="0" inputmode="decimal" /> s</label>
+      </div>
+      <div class="row" style="margin-top: 8px">
+        <label class="num"><span data-i18n="maxWidth"></span>
+          <span class="sel"><select id="lWidth"></select></span> px</label>
+        <label class="num"><span data-i18n="everyNth"></span>
+          <span class="sel"><select id="lStep"></select></span></label>
+      </div>
+      <div class="row" style="margin-top: 8px">
+        <label class="num"><span data-i18n="budget"></span> <input type="number" id="lBudget" step="50" min="50" inputmode="numeric" /> MB</label>
+      </div>
+      <div class="mem" id="lMem"></div>
+      <p class="note" data-i18n="extractNote"></p>
+      <div class="row" style="margin-top: 14px">
+        <button class="btn primary" id="lGo"><span class="ms">play_arrow</span><span data-i18n="extract"></span></button>
+        <button class="btn" id="lCancel"><span data-i18n="cancel"></span></button>
+      </div>
+    </dialog>
+
+    <dialog id="help">
+      <div class="word dlg-word" aria-hidden="true">
+        <span class="k">c</span><span class="a">r</span><span>a</span><span class="b">c</span><span class="k">k</span
+        ><span>l</span><span class="a">e</span><span class="b">r</span>
+      </div>
+      <div class="row dlg-set">
+        <div class="seg small" data-lang-seg aria-label="Language">
+          <button data-v="it">IT</button><button data-v="en">EN</button>
+        </div>
+        <div class="seg small" id="themeSeg" aria-label="Theme">
+          <button data-v="auto" data-i18n="themeAuto"></button><button data-v="light" data-i18n="themeLight"></button
+          ><button data-v="dark" data-i18n="themeDark"></button>
+        </div>
+      </div>
+      <h2 data-i18n="helpTitle"></h2>
+      <div data-i18n-html="helpBody"></div>
+      <div class="row" style="margin-top: 14px">
+        <button class="btn primary" id="helpClose" data-i18n="close"></button>
+      </div>
+    </dialog>
+  </body>
+</html>

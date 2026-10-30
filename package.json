@@ -1,0 +1,10 @@
+{
+  "name": "crackler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Video analysis for physics teaching. Runs in the browser, no dependencies.",
+  "scripts": {
+    "test": "node --test test/"
+  }
+}
